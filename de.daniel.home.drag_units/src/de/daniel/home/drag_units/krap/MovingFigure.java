@@ -177,96 +177,146 @@ public class MovingFigure extends Figure implements IMovingFigure {
 
 	@Override
 	public void calculatePath(List<IFigure> obstacles, int maxX, int maxY) {
-		Thread th = new Thread(new Runnable(){
+		Thread th = new Thread(new Runnable() {
 			@Override
 			public void run() {
+				int nodecount = 0;
+				long millis = System.currentTimeMillis();
 				double dMinCost = 9999;
-				int iIndexMinCost = 0;
-				int iDepth = 0;
+				double currentCost = 0;
 				boolean bFound = false;
 
 				LinkedList<PathPosition> dummyPath = new LinkedList<PathPosition>();
 				LinkedList<PathNode> nodes = new LinkedList<PathNode>();
-				LinkedList<PathNode> visited = new LinkedList<PathNode>();
+				LinkedList<PathPosition> visited = new LinkedList<PathPosition>();
 				LinkedList<PathPosition> neighbours;
-				LinkedList<PathPosition> finalNeighbours;
 
 				PathNode newNode = new PathNode();
 				PathNode parentNode = new PathNode();
+				PathNode minCostNode = null;
 
 				parentNode.setPosition(new PathPosition(x, y, 0, 0));
 				parentNode.setParent(null);
-				parentNode
-						.setCost(getCost(x, y, movingDestination.getPosition().getX(), movingDestination.getPosition().getY()));
+				parentNode.setCost(
+						getCost(x, y, movingDestination.getPosition().getX(), movingDestination.getPosition().getY()));
 
 				nodes.add(parentNode);
 
 				do {
-					iDepth++;
 					dMinCost = 9999;
-					for (int i = 0; i < nodes.size(); i++) {
-						if (nodes.get(i).getCost() < dMinCost) {
-							iIndexMinCost = i;
-							dMinCost = nodes.get(i).getCost();
+					for (PathNode node : nodes) {
+						currentCost = node.getCost();
+						if (currentCost < dMinCost) {
+							dMinCost = currentCost;
+							minCostNode = node;
 						}
 					}
 
-					parentNode = nodes.remove(iIndexMinCost);
+					nodes.remove(minCostNode);
+					parentNode = minCostNode;
 					neighbours = new LinkedList<>();
 
 					Position newP = parentNode.getPosition();
-					if(newP.getX() + speed < maxX) neighbours.add(new PathPosition(newP.getX() + speed, newP.getY(), speed, 0));
-					if(newP.getX() - speed > 0) neighbours.add(new PathPosition(newP.getX() - speed, newP.getY(), -1 * speed, 0));
-					if(newP.getY() + speed < maxY) neighbours.add(new PathPosition(newP.getX(), newP.getY() + speed, 0, speed));
-					if(newP.getY() - speed > 0) neighbours.add(new PathPosition(newP.getX(), newP.getY() - speed, 0, -1 * speed));
-					PathPosition pc5 = getNextStep(newP.getX(), newP.getY());
-					if (pc5 != null)
-						neighbours.add(pc5);
-
-					finalNeighbours = new LinkedList<>();
-
-					for (PathPosition pos : neighbours) {
+					for (IFigure fig : obstacles) {
+					if (newP.getX() + speed < maxX) {
 						boolean collides = false;
 						for (IFigure fig : obstacles) {
-							Collision c = new Figure(pos.getX(), pos.getY(), width, height).checkCollision(fig, newP.getX(),
-									newP.getY());
+							if (new Figure(newP.getX() + speed, newP.getY(), width, height).checkCollisionRight(fig,
+									newP.getX(), newP.getY())) {
+								collides = true;
+								break;
+							}
+						}
+						if (!collides) {
+							PathPosition nPP = new PathPosition(newP.getX() + speed, newP.getY(), speed, 0);
+							if (!checkIfAlreadyVisited(visited, nPP))
+								neighbours.add(nPP);
+						}
+					}
+
+					if (newP.getX() - speed > 0) {
+						boolean collides = false;
+						for (IFigure fig : obstacles) {
+							if (new Figure(newP.getX() - speed, newP.getY(), width, height).checkCollisionLeft(fig,
+									newP.getX(), newP.getY())) {
+								collides = true;
+								break;
+							}
+						}
+						if (!collides) {
+							PathPosition nPP = new PathPosition(newP.getX() - speed, newP.getY(), -1 * speed, 0);
+							if (!checkIfAlreadyVisited(visited, nPP))
+								neighbours.add(nPP);
+						}
+					}
+
+					if (newP.getY() + speed < maxY) {
+						boolean collides = false;
+						for (IFigure fig : obstacles) {
+							if (new Figure(newP.getX(), newP.getY() + speed, width, height).checkCollisionBottom(fig,
+									newP.getX(), newP.getY())) {
+								collides = true;
+								break;
+							}
+						}
+						if (!collides) {
+							PathPosition nPP = new PathPosition(newP.getX(), newP.getY() + speed, 0, speed);
+							if (!checkIfAlreadyVisited(visited, nPP))
+								neighbours.add(nPP);
+						}
+					}
+
+					if (newP.getY() - speed > 0) {
+						boolean collides = false;
+						for (IFigure fig : obstacles) {
+							if (new Figure(newP.getX(), newP.getY() - speed, width, height).checkCollisionTop(fig,
+									newP.getX(), newP.getY())) {
+								collides = true;
+								break;
+							}
+						}
+						if (!collides) {
+							PathPosition nPP = new PathPosition(newP.getX(), newP.getY() - speed, 0, -1 * speed);
+							if (!checkIfAlreadyVisited(visited, nPP))
+								neighbours.add(nPP);
+						}
+					}
+					}
+
+					PathPosition pc5 = getNextStep(newP.getX(), newP.getY());
+					if (pc5 != null) {
+						boolean collides = false;
+						for (IFigure fig : obstacles) {
+							Collision c = new Figure(pc5.getX(), pc5.getY(), width, height).checkCollision(fig,
+									newP.getX(), newP.getY());
 							if (c.isCollision) {
 								collides = true;
 								break;
 							}
 						}
 						if (!collides) {
-							finalNeighbours.add(pos);
+							if (!checkIfAlreadyVisited(visited, pc5))
+								neighbours.add(pc5);
 						}
 					}
 
-					if (finalNeighbours.size() == 0) {
-						finalNeighbours.add(new PathPosition(newP.getX(), newP.getY(), speed, 0));
-					}
-
-					for (int i = 0; i < finalNeighbours.size(); i++) {
+					for (PathPosition pos : neighbours) {
 						PathNode n = new PathNode();
-						n.setPosition(finalNeighbours.get(i));
+						n.setPosition(pos);
 						n.setParent(parentNode);
 						n.setCost(getCost(n.getPosition().getX(), n.getPosition().getY(),
 								movingDestination.getPosition().getX(), movingDestination.getPosition().getY()));
-						n.setDepth(iDepth);
+						nodecount++;
+						nodes.add(n);
+						visited.add(pos);
 
-						boolean alreadyVisited = false;
-						for (PathNode visitedNode : visited) {
-							if (visitedNode.getPosition().equals(n.getPosition())) {
-								alreadyVisited = true;
-								break;
-							}
-						}
-
-						if (!alreadyVisited) {
-							nodes.add(n);
-							visited.add(n);
-						}
-
-						if (n.getPosition().equals(movingDestination.getPosition())) {
-							newNode = n;
+						if (n.getCost() < speed) {
+							PathNode n2 = new PathNode();
+							n2.setPosition(new PathPosition(movingDestination.getPosition().getX(),
+									movingDestination.getPosition().getY(), speed, 0));
+							n2.setParent(n);
+							n.setCost(0);
+							newNode = n2;
 							bFound = true;
 							break;
 						}
@@ -277,10 +327,12 @@ public class MovingFigure extends Figure implements IMovingFigure {
 					dummyPath.add(0, newNode.getPosition());
 					newNode = newNode.getParent();
 				}
-				path = dummyPath;	
+				path = dummyPath;
+				System.out.println(nodecount);
+				System.out.println(System.currentTimeMillis() - millis);
 			}
 		});
-		
+
 		th.start();
 	}
 
@@ -317,6 +369,15 @@ public class MovingFigure extends Figure implements IMovingFigure {
 		return null;
 	}
 
+	private boolean checkIfAlreadyVisited(List<PathPosition> visited, PathPosition pos) {
+		for (PathPosition visitedPosition : visited) {
+			if (visitedPosition.equals(pos)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public void move() {
 		if (path != null && path.size() != 0) {
@@ -327,10 +388,13 @@ public class MovingFigure extends Figure implements IMovingFigure {
 				ax = p.getAx();
 				ay = p.getAy();
 			}
+
+			if (path.size() == 0) {
+				movingDestination = null;
+			}
 		} else {
 			ax = 0;
 			ay = 0;
-//			movingDestination = null;
 		}
 	}
 }

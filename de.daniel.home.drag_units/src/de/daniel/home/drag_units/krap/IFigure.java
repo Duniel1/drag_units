@@ -11,6 +11,10 @@ public interface IFigure{
     void setY(double y);
     double getY();
     Collision checkCollision(IFigure f, double nx, double ny);
+    boolean checkCollisionRight(IFigure f, double nx, double ny);
+    boolean checkCollisionLeft(IFigure f, double nx, double ny);
+    boolean checkCollisionTop(IFigure f, double nx, double ny);
+    boolean checkCollisionBottom(IFigure f, double nx, double ny);
     int getId();
     boolean isSelected();
     void setIsSelected(boolean b);

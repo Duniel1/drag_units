@@ -64,32 +64,28 @@ public class Figure implements IFigure {
 		int deltaY = 0;
 
 		// right
-		if ((nx + this.width > f.getX()) && (ny + this.height > f.getY()) && (ny < f.getY() + f.getHeight())
-				&& (nx < f.getX() + f.getWidth())) {
+		if(checkCollisionRight(f, nx, ny)){
 			c.right = true;
 			c.isCollision = true;
 			deltaX = (int) Math.abs(this.x - f.getX());
 		}
 
 		// left
-		if ((nx < f.getX() + f.getWidth()) && (ny + this.height > f.getY()) && (ny < f.getY() + f.getHeight())
-				&& (nx + this.width > f.getX())) {
+		if (checkCollisionLeft(f, nx, ny)) {
 			c.left = true;
 			c.isCollision = true;
 			deltaX = (int) Math.abs(this.x - f.getX());
 		}
 
 		// top
-		if ((nx < f.getX() + f.getWidth()) && (nx + this.width > f.getX()) && (ny < f.getY() + f.getHeight())
-				&& (ny + this.height > f.getY())) {
+		if (checkCollisionTop(f, nx, ny)) {
 			c.top = true;
 			c.isCollision = true;
 			deltaY = (int) Math.abs(this.y - f.getY());
 		}
 
 		// bottom
-		if ((nx + this.width > f.getX()) && (nx < f.getX() + f.getWidth()) && (ny + this.height > f.getY())
-				&& (ny < f.getY() + f.getHeight())) {
+		if (checkCollisionBottom(f, nx, ny)) {
 			c.bottom = true;
 			c.isCollision = true;
 			deltaY = (int) Math.abs(this.y - f.getY());
@@ -107,6 +103,42 @@ public class Figure implements IFigure {
 
 		c.versus = f;
 		return c;
+	}
+	
+	@Override
+	public boolean checkCollisionRight(IFigure f, double nx, double ny){
+		if ((nx + this.width > f.getX()) && (ny + this.height > f.getY()) && (ny < f.getY() + f.getHeight())
+				&& (nx < f.getX() + f.getWidth())) {
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean checkCollisionLeft(IFigure f, double nx, double ny){
+		if ((nx < f.getX() + f.getWidth()) && (ny + this.height > f.getY()) && (ny < f.getY() + f.getHeight())
+				&& (nx + this.width > f.getX())) {
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean checkCollisionBottom(IFigure f, double nx, double ny){
+		if ((nx + this.width > f.getX()) && (nx < f.getX() + f.getWidth()) && (ny + this.height > f.getY())
+				&& (ny < f.getY() + f.getHeight())) {
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean checkCollisionTop(IFigure f, double nx, double ny){
+		if ((nx < f.getX() + f.getWidth()) && (nx + this.width > f.getX()) && (ny < f.getY() + f.getHeight())
+				&& (ny + this.height > f.getY())) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override
