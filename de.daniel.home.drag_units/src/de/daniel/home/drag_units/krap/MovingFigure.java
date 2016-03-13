@@ -180,7 +180,9 @@ public class MovingFigure extends Figure implements IMovingFigure {
 		Thread th = new Thread(new Runnable() {
 			@Override
 			public void run() {
+				double tolerance = Math.sqrt((Math.pow(speed, 2)) / 2);
 				int nodecount = 0;
+				int nodecount2 = 0;
 				long millis = System.currentTimeMillis();
 				double dMinCost = 9999;
 				double currentCost = 0;
@@ -203,6 +205,7 @@ public class MovingFigure extends Figure implements IMovingFigure {
 				nodes.add(parentNode);
 
 				do {
+					nodecount2++;
 					dMinCost = 9999;
 					for (PathNode node : nodes) {
 						currentCost = node.getCost();
@@ -211,96 +214,143 @@ public class MovingFigure extends Figure implements IMovingFigure {
 							minCostNode = node;
 						}
 					}
-
 					nodes.remove(minCostNode);
 					parentNode = minCostNode;
 					neighbours = new LinkedList<>();
 
 					Position newP = parentNode.getPosition();
-					for (IFigure fig : obstacles) {
-					if (newP.getX() + speed < maxX) {
-						boolean collides = false;
-						for (IFigure fig : obstacles) {
-							if (new Figure(newP.getX() + speed, newP.getY(), width, height).checkCollisionRight(fig,
-									newP.getX(), newP.getY())) {
-								collides = true;
-								break;
-							}
-						}
-						if (!collides) {
-							PathPosition nPP = new PathPosition(newP.getX() + speed, newP.getY(), speed, 0);
-							if (!checkIfAlreadyVisited(visited, nPP))
-								neighbours.add(nPP);
-						}
-					}
-
-					if (newP.getX() - speed > 0) {
-						boolean collides = false;
-						for (IFigure fig : obstacles) {
-							if (new Figure(newP.getX() - speed, newP.getY(), width, height).checkCollisionLeft(fig,
-									newP.getX(), newP.getY())) {
-								collides = true;
-								break;
-							}
-						}
-						if (!collides) {
-							PathPosition nPP = new PathPosition(newP.getX() - speed, newP.getY(), -1 * speed, 0);
-							if (!checkIfAlreadyVisited(visited, nPP))
-								neighbours.add(nPP);
-						}
-					}
-
-					if (newP.getY() + speed < maxY) {
-						boolean collides = false;
-						for (IFigure fig : obstacles) {
-							if (new Figure(newP.getX(), newP.getY() + speed, width, height).checkCollisionBottom(fig,
-									newP.getX(), newP.getY())) {
-								collides = true;
-								break;
-							}
-						}
-						if (!collides) {
-							PathPosition nPP = new PathPosition(newP.getX(), newP.getY() + speed, 0, speed);
-							if (!checkIfAlreadyVisited(visited, nPP))
-								neighbours.add(nPP);
-						}
-					}
-
-					if (newP.getY() - speed > 0) {
-						boolean collides = false;
-						for (IFigure fig : obstacles) {
-							if (new Figure(newP.getX(), newP.getY() - speed, width, height).checkCollisionTop(fig,
-									newP.getX(), newP.getY())) {
-								collides = true;
-								break;
-							}
-						}
-						if (!collides) {
-							PathPosition nPP = new PathPosition(newP.getX(), newP.getY() - speed, 0, -1 * speed);
-							if (!checkIfAlreadyVisited(visited, nPP))
-								neighbours.add(nPP);
-						}
-					}
-					}
-
+					boolean collidesTop = false;
+					boolean checkedTop = false;
+					boolean collidesBottom = false;
+					boolean checkedBottom = false;
+					boolean collidesRight = false;
+					boolean checkedRight = false;
+					boolean collidesLeft = false;
+					boolean checkedLeft = false;
+					boolean collidesDirect = false;
+					boolean checkedDirect = false;
+					IFigure newFigRight = new Figure(newP.getX() + speed, newP.getY(), width, height);
+					IFigure newFigLeft = new Figure(newP.getX() - speed, newP.getY(), width, height);
+					IFigure newFigBottom = new Figure(newP.getX(), newP.getY() + speed, width, height);
+					IFigure newFigTop = new Figure(newP.getX(), newP.getY() - speed, width, height);
 					PathPosition pc5 = getNextStep(newP.getX(), newP.getY());
+					IFigure newFigDirect = null;
 					if (pc5 != null) {
-						boolean collides = false;
-						for (IFigure fig : obstacles) {
-							Collision c = new Figure(pc5.getX(), pc5.getY(), width, height).checkCollision(fig,
-									newP.getX(), newP.getY());
-							if (c.isCollision) {
-								collides = true;
-								break;
+						newFigDirect = new Figure(pc5.getX(), pc5.getY(), width, height);
+					}
+
+					boolean isLessThanMaxX = false;
+					boolean isXGreaterThan0 = false;
+					boolean isLessThanMaxY = false;
+					boolean isYGreaterThan0 = false;
+
+					if (newP.getX() + speed < maxX)
+						isLessThanMaxX = true;
+					if (newP.getX() - speed > 0)
+						isXGreaterThan0 = true;
+					if (newP.getY() + speed < maxY)
+						isLessThanMaxY = true;
+					if (newP.getY() - speed > 0)
+						isYGreaterThan0 = true;
+
+					for (IFigure fig : obstacles) {
+						if (isLessThanMaxX) {
+							checkedRight = true;
+							if (!collidesRight) {
+								if (newFigRight.checkCollisionRight(fig, newP.getX(), newP.getY())) {
+									collidesRight = true;
+								}
 							}
 						}
-						if (!collides) {
-							if (!checkIfAlreadyVisited(visited, pc5))
-								neighbours.add(pc5);
+
+						if (isXGreaterThan0) {
+							checkedLeft = true;
+							if (!collidesLeft) {
+								if (newFigLeft.checkCollisionLeft(fig, newP.getX(), newP.getY())) {
+									collidesLeft = true;
+								}
+							}
+						}
+
+						if (isLessThanMaxY) {
+							checkedBottom = true;
+							if (!collidesBottom) {
+								if (newFigBottom.checkCollisionBottom(fig, newP.getX(), newP.getY())) {
+									collidesBottom = true;
+								}
+							}
+						}
+
+						if (isYGreaterThan0) {
+							checkedTop = true;
+							if (!collidesTop) {
+								if (newFigTop.checkCollisionTop(fig, newP.getX(), newP.getY())) {
+									collidesTop = true;
+								}
+							}
+						}
+
+						if (pc5 != null) {
+							if (pc5.getX() > 0 && pc5.getX() < maxX && pc5.getY() > 0 && pc5.getY() < maxY) {
+								checkedDirect = true;
+								if (!collidesDirect) {
+									Collision c = newFigDirect.checkCollision(fig, newP.getX(), newP.getY());
+									if (c.isCollision) {
+										collidesDirect = true;
+									}
+								}
+							}
+						}
+					}
+
+					if (!collidesRight && checkedRight) {
+						PathPosition nPP = new PathPosition(newP.getX() + speed, newP.getY(), speed, 0);
+						if (!checkIfAlreadyVisited(visited, nPP, tolerance)) {
+							nPP.setOppositeDirection(PathPosition.Direction.LEFT);
+							nPP.setDirection(PathPosition.Direction.RIGHT);
+							neighbours.add(nPP);
+						}
+					}
+
+					if (!collidesLeft && checkedLeft) {
+						PathPosition nPP = new PathPosition(newP.getX() - speed, newP.getY(), -1 * speed, 0);
+						if (!checkIfAlreadyVisited(visited, nPP, tolerance)) {
+							nPP.setOppositeDirection(PathPosition.Direction.RIGHT);
+							nPP.setDirection(PathPosition.Direction.LEFT);
+							neighbours.add(nPP);
+						}
+					}
+
+					if (!collidesBottom && checkedBottom) {
+						PathPosition nPP = new PathPosition(newP.getX(), newP.getY() + speed, 0, speed);
+						if (!checkIfAlreadyVisited(visited, nPP, tolerance)) {
+							nPP.setOppositeDirection(PathPosition.Direction.UP);
+							nPP.setDirection(PathPosition.Direction.DOWN);
+							neighbours.add(nPP);
+						}
+					}
+
+					if (!collidesTop && checkedTop) {
+						PathPosition nPP = new PathPosition(newP.getX(), newP.getY() - speed, 0, -1 * speed);
+						if (!checkIfAlreadyVisited(visited, nPP, tolerance)) {
+							nPP.setOppositeDirection(PathPosition.Direction.DOWN);
+							nPP.setDirection(PathPosition.Direction.UP);
+							neighbours.add(nPP);
+						}
+					}
+
+					if (!collidesDirect && checkedDirect) {
+						if (!checkIfAlreadyVisited(visited, pc5, tolerance)) {
+							pc5.setDirection(PathPosition.Direction.DIRECT);
+							neighbours.add(pc5);
 						}
 					}
 
 					for (PathPosition pos : neighbours) {
+						if (parentNode.getPosition() != null && parentNode.getPosition().getDirection() != PathPosition.Direction.DIRECT
+								&& pos.getOppositeDirection() == parentNode.getPosition().getDirection())
+							continue;
+
 						PathNode n = new PathNode();
 						n.setPosition(pos);
 						n.setParent(parentNode);
@@ -327,8 +377,9 @@ public class MovingFigure extends Figure implements IMovingFigure {
 					dummyPath.add(0, newNode.getPosition());
 					newNode = newNode.getParent();
 				}
+
 				path = dummyPath;
-				System.out.println(nodecount);
+				System.out.println(nodecount + " " + nodecount2);
 				System.out.println(System.currentTimeMillis() - millis);
 			}
 		});
@@ -369,9 +420,9 @@ public class MovingFigure extends Figure implements IMovingFigure {
 		return null;
 	}
 
-	private boolean checkIfAlreadyVisited(List<PathPosition> visited, PathPosition pos) {
+	private boolean checkIfAlreadyVisited(List<PathPosition> visited, PathPosition pos, double tolerance) {
 		for (PathPosition visitedPosition : visited) {
-			if (visitedPosition.equals(pos)) {
+			if (visitedPosition.equals(pos, tolerance)) {
 				return true;
 			}
 		}

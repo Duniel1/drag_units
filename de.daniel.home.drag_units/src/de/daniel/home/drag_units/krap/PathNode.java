@@ -5,7 +5,6 @@ public class PathNode {
 	private PathNode nParent;
 	private PathPosition position;
 	private double dCost;
-	private int iDepth;
 
 	public PathNode getParent() 
 	{
@@ -34,15 +33,5 @@ public class PathNode {
 	public void setCost(double f)
 	{
 		dCost = f;
-	}
-
-	public void setDepth(int i)
-	{
-		iDepth = i;
-	}
-	
-	public int getDepth()
-	{
-		return iDepth;
 	}
 }

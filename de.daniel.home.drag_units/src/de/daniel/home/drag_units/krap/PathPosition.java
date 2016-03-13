@@ -4,6 +4,8 @@ public class PathPosition extends Position{
 	
 	private double ax;
 	private double ay;
+	private Direction oppositeDirection;
+	private Direction direction;
 
 	public PathPosition(double x, double y, double ax, double ay) {
 		super(x, y);
@@ -25,5 +27,24 @@ public class PathPosition extends Position{
 
 	public void setAy(double ay) {
 		this.ay = ay;
+	}
+	public Direction getOppositeDirection() {
+		return oppositeDirection;
+	}
+
+	public void setOppositeDirection(Direction direction) {
+		this.oppositeDirection = direction;
+	}
+
+	public Direction getDirection() {
+		return direction;
+	}
+
+	public void setDirection(Direction direction) {
+		this.direction = direction;
+	}
+
+	public enum Direction{
+		LEFT, RIGHT, UP, DOWN, DIRECT;
 	}
 }
