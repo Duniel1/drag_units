@@ -1,5 +1,6 @@
 package de.daniel.home.drag_units_2.krap;
 
+import java.util.Collections;
 import java.util.List;
 
 import de.daniel.home.drag_units_2.krap.Definitions.WallDefinition;
@@ -8,6 +9,9 @@ public class Calculator {
 	
 	private static int maxX;
 	private static int maxY;
+	
+	private static int productionFiguresShuffleCounter = 0;
+	private static int productionFiguresShuffle = 5;
 	
 	public static void init(int maxX, int maxY){
 		Calculator.maxX = maxX;
@@ -135,7 +139,7 @@ public class Calculator {
         
     }
 	
-	public static void calculateNewPositionsUnits(List<IInteractingFigure> units){
+	public static void calculateNewPositionsUnits(List<? extends IInteractingFigure> units){
 		for(IInteractingFigure fig: units){
 			fig.move();
 		}
@@ -160,8 +164,18 @@ public class Calculator {
 	}
 	
 	public static void calculateRessources(List<IProductionFigure> l){
+		if(productionFiguresShuffleCounter++ == 10){
+			productionFiguresShuffleCounter = productionFiguresShuffle;
+			Collections.shuffle(l);
+		}
 		for(IProductionFigure ipf: l){
 			ipf.calculateRessources();
+		}
+	}
+	
+	public static void calculateStorage(List<IStorageBuilding> l){
+		for(IStorageBuilding ipf: l){
+			ipf.calculateStorage();
 		}
 	}
 }

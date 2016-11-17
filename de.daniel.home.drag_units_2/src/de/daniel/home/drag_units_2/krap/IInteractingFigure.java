@@ -1,5 +1,6 @@
 package de.daniel.home.drag_units_2.krap;
 
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 import de.daniel.home.drag_units_2.krap.Definitions.FigureType;
@@ -33,9 +34,13 @@ public interface IInteractingFigure extends IFigure{
     double getNewAy();
     void finalizeA();
     void setLeftBImage(String image);
+    void setLeftBImageReference(BufferedImage image);
     void setRightBImage(String image);
+    void setRightBImageReference(BufferedImage image);
     void setUpBImage(String image);
+    void setUpBImageReference(BufferedImage image);
     void setDownBImage(String image);
+    void setDownBImageReference(BufferedImage image);
     void setIsTransient(boolean b);
     boolean isTransient();
     void setSpeed(double i);
@@ -55,9 +60,13 @@ public interface IInteractingFigure extends IFigure{
 	void setIsDead(boolean b);
 	boolean isDead();
 	void setLeftBImageFight(String image);
+	void setLeftBImageFightReference(BufferedImage image);
     void setRightBImageFight(String image);
+    void setRightBImageFightReference(BufferedImage image);
     void setUpBImageFight(String image);
+    void setUpBImageFightReference(BufferedImage image);
     void setDownBImageFight(String image);
+    void setDownBImageFightReference(BufferedImage image);
     void setSelectedEnemy(IInteractingFigure u);
     IInteractingFigure getSelectedEnemy();
     

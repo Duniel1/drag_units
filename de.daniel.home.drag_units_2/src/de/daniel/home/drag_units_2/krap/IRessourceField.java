@@ -8,4 +8,9 @@ public interface IRessourceField extends IFigure{
 	void setCapacity(int i);
 	int getEffort();
 	void setEffort(int i);
+	boolean cutting();
+	boolean isTaken();
+	void take(boolean b);
+	boolean isEmpty();
+	void setIsEmpty(boolean b);
 }

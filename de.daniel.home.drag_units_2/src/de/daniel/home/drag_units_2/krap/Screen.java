@@ -6,14 +6,13 @@ import java.awt.Graphics2D;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import javax.swing.JPanel;
 
@@ -28,6 +27,10 @@ public class Screen extends JPanel {
 	private List<IInteractingFigure> movingAdditionalFigures = new ArrayList<>();
 	private List<IInteractingFigure> myFigures = new ArrayList<>();
 	private List<IProductionFigure> myProductionFigures = new ArrayList<>();
+	private List<IStorageBuilding> myStorageBuildings = new ArrayList<>();
+	private List<IResidentBuilding> myResidentBuildings = new ArrayList<>();
+	private List<IInteractingFigure> myRunners = new ArrayList<>();
+	private List<IStorageRunner> myStorageRunners = new ArrayList<>();
 	private List<IInteractingFigure> enemyFigures = new ArrayList<>();
 	private List<IRessourceField> ressourceFields = new ArrayList<>();
 	private int maxX;
@@ -40,6 +43,7 @@ public class Screen extends JPanel {
 	private boolean elementsSelected;
 	private boolean interactingSelected;
 	private boolean productionSelected;
+	private boolean storageSelected;
 	private boolean buildMode = false;
 	private Random r;
 	private ToolScreen toolScreen;
@@ -145,7 +149,7 @@ public class Screen extends JPanel {
 			enemyFigures.add(iunit);
 		}
 
-		IProductionFigure prodFigure = new ProductionFigure(500, 500, 50, 50);
+		/*IProductionFigure prodFigure = new ProductionFigure(500, 500, 50, 50);
 		Map<Ressource, Integer> prodDelayMap = new HashMap<>();
 		prodDelayMap.put(Ressource.WOOD, 5);
 		prodFigure.setProductionDelay(prodDelayMap);
@@ -174,8 +178,8 @@ public class Screen extends JPanel {
 		Map<Ressource, Integer> productionTimeLeftMap2 = new HashMap<>();
 		productionTimeLeftMap2.put(Ressource.GOLD, 10);
 		prodFigure2.setProductionTimeLeft(productionTimeLeftMap2);
-		prodFigure2.setCurrenetRessources(Ressource.STONE, 20);
-		prodFigure2.setCurrenetRessources(Ressource.WOOD, 20);
+		prodFigure2.setCurrentRessources(Ressource.STONE, 20);
+		prodFigure2.setCurrentRessources(Ressource.WOOD, 20);
 		Map<Ressource, Integer> neededMap = new HashMap<>();
 		neededMap.put(Ressource.STONE, 2);
 		neededMap.put(Ressource.WOOD, 5);
@@ -183,14 +187,13 @@ public class Screen extends JPanel {
 		prodFigure2.setImage("resources/building.png");
 		prodFigure2.setIsProductionDirect(true);
 		prodFigure2.setName("Gold Mine");
-		myProductionFigures.add(prodFigure2);
+		myProductionFigures.add(prodFigure2);*/
 		
 		for(int i = 0; i < 20; i++){
-			IRessourceField irf = new RessourceField(20 + i * 10, 350, 10, 10, Ressource.WOOD, 100, 3);
+			IRessourceField irf = new RessourceField(20 + i * 10, 350, 10, 10, Ressource.WOOD, 3, 1);
 			irf.setImageReference(Definitions.ressourceImageWood);
 			ressourceFields.add(irf);
 		}
-		
 
 		ressources = new HashMap<>();
 		ressources.put(Ressource.WOOD, 100);
@@ -210,6 +213,8 @@ public class Screen extends JPanel {
 
 		// Calculator.calculateNewPositions(movingFigures, objects);
 		Calculator.calculateNewPositionsUnits(myFigures);
+		Calculator.calculateNewPositionsUnits(myRunners);
+		Calculator.calculateNewPositionsUnits(myStorageRunners);
 		// Calculator.calculateNewPositionsEnemyUnits(enemyUnits);
 		Calculator.checkEnemyInRange(new ArrayList<IInteractingFigure>(myFigures),
 				new ArrayList<IInteractingFigure>(enemyFigures));
@@ -221,9 +226,12 @@ public class Screen extends JPanel {
 				deadUnits.add(unit);
 			}
 		}
-		for (IInteractingFigure unit : deadUnits) {
-			myFigures.remove(unit);
-		}
+		
+		myFigures.removeAll(deadUnits);
+		
+//		for (IInteractingFigure unit : deadUnits) {
+//			myFigures.remove(unit);
+//		}
 
 		deadUnits = new ArrayList<IInteractingFigure>();
 		for (IInteractingFigure unit : enemyFigures) {
@@ -231,9 +239,11 @@ public class Screen extends JPanel {
 				deadUnits.add(unit);
 			}
 		}
-		for (IInteractingFigure unit : deadUnits) {
-			enemyFigures.remove(unit);
-		}
+		
+		enemyFigures.removeAll(deadUnits);
+//		for (IInteractingFigure unit : deadUnits) {
+//			enemyFigures.remove(unit);
+//		}
 
 		buildingCollisionFlag = false;
 		if (buildMode) {
@@ -272,7 +282,7 @@ public class Screen extends JPanel {
 		}
 		
 		Graphics2D graphics2D = (Graphics2D) g;
-
+		
 		for (IFigure r : additionalBlockingObjects) {
 			graphics2D.drawImage(r.getImage(), (int) r.getX(), (int) r.getY(), null);
 			if (buildMode && !buildingCollisionFlag && buildingCostFlag) {
@@ -280,7 +290,29 @@ public class Screen extends JPanel {
 			}
 		}
 
+		List<IRessourceField> ressFieldsToRemove = new ArrayList<>();
+
 		for (IRessourceField r : ressourceFields) {
+			if(r.isEmpty()){
+				ressFieldsToRemove.add(r);
+				continue;
+			}
+			graphics2D.drawImage(r.getImage(), (int) r.getX(), (int) r.getY(), null);
+			if (buildMode && !buildingCollisionFlag && buildingCostFlag) {
+				checkBuildBuildingCollision(r);
+			}
+		}
+		
+		ressourceFields.removeAll(ressFieldsToRemove);
+		
+		for(IInteractingFigure r: myRunners){
+			graphics2D.drawImage(r.getImage(), (int) r.getX(), (int) r.getY(), null);
+			if (buildMode && !buildingCollisionFlag && buildingCostFlag) {
+				checkBuildBuildingCollision(r);
+			}
+		}
+		
+		for(IInteractingFigure r: myStorageRunners){
 			graphics2D.drawImage(r.getImage(), (int) r.getX(), (int) r.getY(), null);
 			if (buildMode && !buildingCollisionFlag && buildingCostFlag) {
 				checkBuildBuildingCollision(r);
@@ -293,8 +325,27 @@ public class Screen extends JPanel {
 				drawSelection(r, graphics2D);
 				graphics2D.setColor(Color.BLACK);
 				graphics2D.drawString(r.getName(), (int) r.getX(), (int) r.getY());
-				if(((IProductionFigure)r).hasRadius()){
+				if(((IRadiusHandler)r).hasRadius()){
 					IProductionFigure r2 = (IProductionFigure)r;
+					int radiusX = (int)(r2.getX() + 0.5 * r.getWidth() - r2.getRadiusSize());
+					int radiusY = (int)(r2.getY() + 0.5 * r.getHeight() - r2.getRadiusSize());
+					graphics2D.setColor(Color.GREEN);
+					graphics2D.drawOval(radiusX, radiusY, 2 * r2.getRadiusSize(), 2 * r2.getRadiusSize());
+				}
+			}
+			if (buildMode && !buildingCollisionFlag && buildingCostFlag) {
+				checkBuildBuildingCollision(r);
+			}
+		}
+		
+		for (IFigure r : myStorageBuildings) {
+			graphics2D.drawImage(r.getImage(), (int) r.getX(), (int) r.getY(), null);
+			if (r.isSelected()) {
+				drawSelection(r, graphics2D);
+				graphics2D.setColor(Color.BLACK);
+				graphics2D.drawString(r.getName(), (int) r.getX(), (int) r.getY());
+				if(((IRadiusHandler)r).hasRadius()){
+					IStorageBuilding r2 = (IStorageBuilding)r;
 					int radiusX = (int)(r2.getX() + 0.5 * r.getWidth() - r2.getRadiusSize());
 					int radiusY = (int)(r2.getY() + 0.5 * r.getHeight() - r2.getRadiusSize());
 					graphics2D.setColor(Color.GREEN);
@@ -363,7 +414,7 @@ public class Screen extends JPanel {
 					Map<Ressource, Integer> leftMap = ipf.getProductionTimeLeft();
 					for (Entry<Ressource, Integer> leftMapEntry : leftMap.entrySet()) {
 						myFiguresStringBuilder.append("-" + leftMapEntry.getKey());
-						myFiguresStringBuilder.append(" (" + leftMapEntry.getValue() + ")");
+						myFiguresStringBuilder.append(" (" + leftMapEntry.getValue() + ") [+" + ipf.getProductionAmount() + "]");
 						myFiguresStringBuilder.append("<br>needs:");
 						if (ipf.getNeededRessource(leftMapEntry.getKey()) != null) {
 							for (Entry<Ressource, Integer> neededEntry : ipf.getNeededRessource(leftMapEntry.getKey())
@@ -379,7 +430,8 @@ public class Screen extends JPanel {
 					myFiguresStringBuilder.append("<br>Storage:");
 					Map<Ressource, Integer> currentMap = ipf.getCurrentRessources();
 					for (Entry<Ressource, Integer> storageEntry : currentMap.entrySet()) {
-						myFiguresStringBuilder.append("<br>-" + storageEntry.getKey() + ": " + storageEntry.getValue());
+						myFiguresStringBuilder.append("<br>-" + storageEntry.getKey() + ": " + storageEntry.getValue() + "/" +
+					ipf.getCurrentRessourcesStorageLimit().get(storageEntry.getKey()));
 					}
 
 					if (!ipf.isProductionDirect()) {
@@ -396,6 +448,21 @@ public class Screen extends JPanel {
 				}
 			}
 		}
+		
+		if (storageSelected) {
+			for (IStorageBuilding isb : myStorageBuildings) {
+				if (isb.isSelected()) {
+					myFiguresStringBuilder.append(isb.getName() + " [Cap: " + isb.getCapacity() + ", Runners Cap:" + isb.getMaxNumOfRunners() + "]" + "<br>");
+					myFiguresStringBuilder.append("<br>Ressources:<br>");
+					myFiguresStringBuilder.append("Gold: " + isb.getRessource(Ressource.GOLD) + "<br>");
+					myFiguresStringBuilder.append("Wood: " + isb.getRessource(Ressource.WOOD) + "<br>");
+					myFiguresStringBuilder.append("Stone: " + isb.getRessource(Ressource.STONE) + "<br>");
+					myFiguresStringBuilder.append("Runners: " + isb.getNumberOfRunners() + " (" + isb.getNumberOfRunnersOnTheWay() + " running)<br>");
+					break;
+				}
+			}
+		}
+		
 		myFiguresStringBuilder.append("</html>");
 
 		if (selectionActive) {
@@ -426,7 +493,7 @@ public class Screen extends JPanel {
 			}
 		}
 
-		if(elementsSelected || interactingSelected || productionSelected){
+		if(elementsSelected || interactingSelected || productionSelected || storageSelected){
 			toolScreen.setSelectedFiguresInfo(myFiguresStringBuilder.toString());
 		}
 		
@@ -450,6 +517,7 @@ public class Screen extends JPanel {
 				elementsSelected = true;
 				interactingSelected = true;
 				productionSelected = false;
+				storageSelected = false;
 				return;
 			}
 		}
@@ -460,7 +528,19 @@ public class Screen extends JPanel {
 				elementsSelected = true;
 				interactingSelected = false;
 				productionSelected = true;
-				break;
+				storageSelected = false;
+				return;
+			}
+		}
+		
+		for (IStorageBuilding ipf : myStorageBuildings) {
+			if (selectOneFigure(x, y, ipf)) {
+				ipf.setIsSelected(true);
+				elementsSelected = true;
+				interactingSelected = false;
+				productionSelected = false;
+				storageSelected = true;
+				return;
 			}
 		}
 	}
@@ -678,10 +758,15 @@ public class Screen extends JPanel {
 		for (IFigure r : myProductionFigures) {
 			r.setIsSelected(false);
 		}
+		
+		for (IFigure r : myStorageBuildings) {
+			r.setIsSelected(false);
+		}
 
 		elementsSelected = false;
 		interactingSelected = false;
 		productionSelected = false;
+		storageSelected = false;
 		
 		toolScreen.setSelectedFiguresInfo("");
 	}
@@ -721,6 +806,8 @@ public class Screen extends JPanel {
 
 			}
 		}
+		
+		Calculator.calculateStorage(myStorageBuildings);
 	}
 	
 	public void deactivateBuildingMode(){
@@ -757,13 +844,26 @@ public class Screen extends JPanel {
 			myProductionFigures.add(ipf2);
 			break;
 		case RESIDENT:
+			IProductionFigure ipf3 = getBuildingResident(buildingInfo.getX(), buildingInfo.getY());
+			myProductionFigures.add(ipf3);
 			break;
+		case LITTLESTORAGE:
+			IStorageBuilding isb = getBuildingLittleStorageBuilding(buildingInfo.getX(), buildingInfo.getY());
+			myStorageBuildings.add(isb);
 		default:
 			break;
 		}
 		
+		initProductionFiguresInRadiusOfStorage();
+		
 		buildingInfo = null;
 		toolScreen.setBuildBuildingInfo("");
+	}
+
+	private void initProductionFiguresInRadiusOfStorage() {
+		for(IStorageBuilding isb: myStorageBuildings){
+			isb.initProductionFiguresInRadius(getMyProductionFigures());
+		}
 	}
 
 	private void checkBuildBuildingCollision(IFigure r) {
@@ -775,23 +875,29 @@ public class Screen extends JPanel {
 	
 	private IProductionFigure getBuildingGoldMine(double x, double y){
 		IProductionFigure prodFigure = new ProductionFigure(x, y, 50, 50);
+		prodFigure.setScreen(this);
 		Map<Ressource, Integer> prodDelayMap2 = new HashMap<>();
-		prodDelayMap2.put(Ressource.GOLD, 10);
+		prodDelayMap2.put(Ressource.GOLD, 2);
 		prodFigure.setProductionDelay(prodDelayMap2);
 		List<Ressource> ressourceList2 = new LinkedList<>();
 		ressourceList2.add(Ressource.GOLD);
 		prodFigure.setRessources(ressourceList2);
 		Map<Ressource, Integer> productionTimeLeftMap2 = new HashMap<>();
-		productionTimeLeftMap2.put(Ressource.GOLD, 10);
+		productionTimeLeftMap2.put(Ressource.GOLD, 2);
 		prodFigure.setProductionTimeLeft(productionTimeLeftMap2);
-		prodFigure.setCurrenetRessources(Ressource.STONE, 20);
-		prodFigure.setCurrenetRessources(Ressource.WOOD, 20);
+		prodFigure.setCurrentRessources(Ressource.STONE, 20);
+		prodFigure.setCurrentRessources(Ressource.WOOD, 20);
+		prodFigure.setCurrentRessourceStorageLimit(Ressource.STONE, 20);
+		prodFigure.setCurrentRessourceStorageLimit(Ressource.WOOD, 20);
 		Map<Ressource, Integer> neededMap = new HashMap<>();
 		neededMap.put(Ressource.STONE, 2);
 		neededMap.put(Ressource.WOOD, 5);
 		prodFigure.setNeededRessources(Ressource.GOLD, neededMap);
 		prodFigure.setImage("resources/building.png");
-		prodFigure.setIsProductionDirect(true);
+		prodFigure.setIsProductionDirect(false);
+		Map<Ressource, Integer> prodStorageLimit = new HashMap<>();
+		prodStorageLimit.put(Ressource.GOLD, 10);
+		prodFigure.setProducedRessourcesStorageLimit(prodStorageLimit);
 		prodFigure.setName("Gold Mine");
 		prodFigure.setType(Building.GOLDMINE);
 		return prodFigure;
@@ -799,19 +905,20 @@ public class Screen extends JPanel {
 	
 	private IProductionFigure getBuildingLumberjack(double x, double y){
 		IProductionFigure prodFigure = new ProductionFigure(x, y, 50, 50);
+		prodFigure.setScreen(this);
 		Map<Ressource, Integer> prodDelayMap = new HashMap<>();
-		prodDelayMap.put(Ressource.WOOD, 5);
+		prodDelayMap.put(Ressource.WOOD, 1);
 		prodFigure.setProductionDelay(prodDelayMap);
 		List<Ressource> ressourceList = new LinkedList<>();
 		ressourceList.add(Ressource.WOOD);
 		prodFigure.setRessources(ressourceList);
 		Map<Ressource, Integer> productionTimeLeftMap = new HashMap<>();
-		productionTimeLeftMap.put(Ressource.WOOD, 5);
+		productionTimeLeftMap.put(Ressource.WOOD, 1);
 		prodFigure.setProductionTimeLeft(productionTimeLeftMap);
 		prodFigure.setImageReference(Definitions.buildingImageLumberjack);
 		prodFigure.setIsProductionDirect(false);
 		Map<Ressource, Integer> prodStorageLimit = new HashMap<>();
-		prodStorageLimit.put(Ressource.WOOD, 5);
+		prodStorageLimit.put(Ressource.WOOD, 500);
 		prodFigure.setProducedRessourcesStorageLimit(prodStorageLimit);
 		prodFigure.setName("Lumberjack");
 		prodFigure.setProductivity(1);
@@ -819,6 +926,83 @@ public class Screen extends JPanel {
 		prodFigure.setHasRadius(true);
 		prodFigure.setRadiusSize(125);
 		prodFigure.initAssociatedRessourceFields(ressourceFields, Ressource.WOOD);
+		prodFigure.initRunner(Definitions.figureImageWorker, Definitions.figureImageWorker, Definitions.figureImageWorker, Definitions.figureImageWorker, Definitions.figureImageWorker, 10, 10, 5);
 		return prodFigure;
+	}
+	
+	private IProductionFigure getBuildingResident(double x, double y) {
+		IProductionFigure prodFigure = new ProductionFigure(x, y, 50, 50);
+		Map<Ressource, Integer> prodDelayMap2 = new HashMap<>();
+		prodDelayMap2.put(Ressource.MONEY, 5);
+		prodFigure.setProductionDelay(prodDelayMap2);
+		List<Ressource> ressourceList2 = new LinkedList<>();
+		ressourceList2.add(Ressource.MONEY);
+		prodFigure.setRessources(ressourceList2);
+		Map<Ressource, Integer> productionTimeLeftMap2 = new HashMap<>();
+		productionTimeLeftMap2.put(Ressource.MONEY, 5);
+		prodFigure.setProductionTimeLeft(productionTimeLeftMap2);
+		prodFigure.setImageReference(Definitions.buildingImageResident);
+		prodFigure.setIsProductionDirect(true);
+		prodFigure.setName("Resident");
+		prodFigure.setType(Building.RESIDENT);
+		return prodFigure;
+	}
+	
+	private IStorageBuilding getBuildingLittleStorageBuilding(double x, double y) {
+		IStorageBuilding isb = new StorageBuilding(x, y, 50, 50);
+		isb.setScreen(this);
+		isb.setImageReference(Definitions.buildingImageLittleStorage);
+		isb.setName("Little Storage Building");
+		isb.setHasRadius(true);
+		isb.setRadiusSize(250);
+		isb.setCapacity(100);
+		isb.setMaxNumOfRunners(5);
+		isb.initProductionFiguresInRadius(myProductionFigures);
+		isb.addRunner(Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, 10, 10, 2, 1);
+		isb.addRunner(Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, 10, 10, 2, 1);
+		isb.addRunner(Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, 10, 10, 2, 1);
+		isb.addRunner(Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, 10, 10, 2, 1);
+		isb.addRunner(Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, Definitions.figureImageStorageRunner, 10, 10, 2, 1);
+		isb.getRessources().put(Ressource.WOOD, 20);
+		isb.getRessources().put(Ressource.STONE, 20);
+		isb.getRessources().put(Ressource.GOLD, 20);
+		isb.getReservedStorage().put(Ressource.WOOD, 0);
+		isb.getReservedStorage().put(Ressource.STONE, 0);
+		isb.getReservedStorage().put(Ressource.GOLD, 0);
+		return isb;
+	}
+	
+	public List<IInteractingFigure> getMyRunners(){
+		if(myRunners == null) 
+			myRunners = new LinkedList<>();
+			
+		return myRunners;
+	}
+	
+	public List<IStorageRunner> getMyStorageRunners(){
+		if(myStorageRunners == null) 
+			myStorageRunners = new LinkedList<>();
+			
+		return myStorageRunners;
+	}
+	
+	public List<IFigure> getAdditionalBlockingObjects(){
+		return additionalBlockingObjects;
+	}
+	
+	public List<IProductionFigure> getMyProductionFigures(){
+		return myProductionFigures;
+	}
+	
+	public List<IRessourceField> getRessourceFields(){
+		return ressourceFields;
+	}
+	
+	public List<IStorageBuilding> getMyStorageBuildings(){
+		return myStorageBuildings;
+	}
+	
+	public List<IResidentBuilding> getMyResidentBuildings(){
+		return myResidentBuildings;
 	}
 }

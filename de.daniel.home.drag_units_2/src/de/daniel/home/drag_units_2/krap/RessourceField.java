@@ -7,6 +7,8 @@ public class RessourceField extends Figure implements IRessourceField {
 	private int capacity;
 	private Ressource type;
 	private int effort;
+	private boolean taken = false;
+	private boolean isEmpty = false;
 	
 	public RessourceField(double x, double y, double width, double height, Ressource type, int capacity, int effort){
 		this(x, y, width, height);
@@ -42,5 +44,31 @@ public class RessourceField extends Figure implements IRessourceField {
 	@Override
 	public void setEffort(int i) {
 		effort = i;
+	}
+
+	@Override
+	public boolean cutting() {
+		capacity--;
+		return capacity > 0;
+	}
+
+	@Override
+	public boolean isTaken() {
+		return taken;
+	}
+
+	@Override
+	public void take(boolean b) {
+		taken = b;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return isEmpty;
+	}
+
+	@Override
+	public void setIsEmpty(boolean b) {
+		isEmpty = b;
 	}
 }

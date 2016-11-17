@@ -13,6 +13,10 @@ public class Definitions {
 	public static Map<FigureType, String> nameMap;
 	public static BufferedImage ressourceImageWood;
 	public static BufferedImage buildingImageLumberjack;
+	public static BufferedImage buildingImageResident;
+	public static BufferedImage buildingImageLittleStorage;
+	public static BufferedImage figureImageWorker;
+	public static BufferedImage figureImageStorageRunner;
 	
 	static {
 		nameMap = new HashMap<FigureType, String>();
@@ -21,12 +25,11 @@ public class Definitions {
 		
 		try {
 			ressourceImageWood = ImageIO.read(new File("resources/wood.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		try {
 			buildingImageLumberjack = ImageIO.read(new File("resources/building.png"));
+			buildingImageResident = ImageIO.read(new File("resources/building.png"));
+			buildingImageLittleStorage = ImageIO.read(new File("resources/building.png"));
+			figureImageWorker = ImageIO.read(new File("resources/worker.png"));
+			figureImageStorageRunner = ImageIO.read(new File("resources/worker.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -49,6 +52,10 @@ public class Definitions {
 	}
 	
 	public enum Building{
-		RESIDENT, LUMBERJACK, GOLDMINE;
+		RESIDENT, LUMBERJACK, GOLDMINE, LITTLESTORAGE;
+	}
+	
+	public enum StorageBuildingRequestType{
+		ORDER, PRODUCTION, RESIDENTORDER;
 	}
 }

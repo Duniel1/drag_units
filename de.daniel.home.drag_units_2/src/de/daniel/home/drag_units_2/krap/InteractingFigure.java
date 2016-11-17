@@ -18,7 +18,6 @@ public class InteractingFigure extends Figure implements IInteractingFigure{
 
 	public InteractingFigure(double x, double y, double width, double height) {
 		super(x, y, width, height);
-		// TODO Auto-generated constructor stub
 	}
 
 	private EnumMap<WallDefinition, Boolean> mapOnWall = new EnumMap<>(WallDefinition.class);
@@ -443,8 +442,8 @@ public class InteractingFigure extends Figure implements IInteractingFigure{
 				}
 
 				path = dummyPath;
-				System.out.println(nodecount + " " + nodecount2);
-				System.out.println(System.currentTimeMillis() - millis);
+//				System.out.println(nodecount + " " + nodecount2);
+//				System.out.println(System.currentTimeMillis() - millis);
 			}
 		});
 
@@ -701,5 +700,45 @@ public class InteractingFigure extends Figure implements IInteractingFigure{
 	@Override
 	public FigureType getFigureType() {
 		return figureType;
+	}
+
+	@Override
+	public void setLeftBImageReference(BufferedImage image) {
+		mapBImages.put(Direction.LEFT, image);
+	}
+
+	@Override
+	public void setRightBImageReference(BufferedImage image) {
+		mapBImages.put(Direction.RIGHT, image);
+	}
+
+	@Override
+	public void setUpBImageReference(BufferedImage image) {
+		mapBImages.put(Direction.UP, image);
+	}
+
+	@Override
+	public void setDownBImageReference(BufferedImage image) {
+		mapBImages.put(Direction.DOWN, image);
+	}
+
+	@Override
+	public void setLeftBImageFightReference(BufferedImage image) {
+		mapBImagesFight.put(Direction.LEFT, image);
+	}
+
+	@Override
+	public void setRightBImageFightReference(BufferedImage image) {
+		mapBImagesFight.put(Direction.RIGHT, image);
+	}
+
+	@Override
+	public void setUpBImageFightReference(BufferedImage image) {
+		mapBImagesFight.put(Direction.UP, image);
+	}
+
+	@Override
+	public void setDownBImageFightReference(BufferedImage image) {
+		mapBImagesFight.put(Direction.DOWN, image);
 	}
 }

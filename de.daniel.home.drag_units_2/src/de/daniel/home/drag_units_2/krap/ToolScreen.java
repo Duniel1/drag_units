@@ -1,6 +1,7 @@
 package de.daniel.home.drag_units_2.krap;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -38,6 +39,7 @@ public class ToolScreen extends JPanel {
 	private JLabel militaryBack;
 	private JLabel goldMine;
 	private JLabel lumberjack;
+	private JLabel littleStorageBuilding;
 	private JPanel rightPanelLvl1;
 	private JPanel rightPanelSociety;
 	private JPanel rightPanelProduction;
@@ -66,6 +68,7 @@ public class ToolScreen extends JPanel {
 		goldMine = new JLabel("Gold Mine");
 		productionBack = new JLabel("Back");
 		militaryBack = new JLabel("Back");
+		littleStorageBuilding = new JLabel("Little Storage Building");
 		
 		initListeners();
 		
@@ -84,6 +87,7 @@ public class ToolScreen extends JPanel {
 		rightPanelProduction.setLayout(rightLayout);
 		rightPanelProduction.add(lumberjack);
 		rightPanelProduction.add(goldMine);
+		rightPanelProduction.add(littleStorageBuilding);
 		rightPanelProduction.add(productionBack);
 		
 		rightPanelMilitary = new JPanel();
@@ -101,7 +105,9 @@ public class ToolScreen extends JPanel {
 		middlePanel.setBorder(outerBorder);
 		rightPanel.setBorder(outerBorder);
 		
+		Font font = new Font("Verdana", Font.PLAIN, 10);
 		selectedFiguresInfo = new JLabel("selectedFiguresInfo");
+		selectedFiguresInfo.setFont(font);
 		woodInfo = new JLabel("Wood: 0");
 		goldInfo = new JLabel("Gold: 0");
 		stoneInfo = new JLabel("Stone: 0");
@@ -318,6 +324,29 @@ public class ToolScreen extends JPanel {
 			public void mouseClicked(MouseEvent e) {
 				IBuildingInfo bi = new BuildingInfo(Building.GOLDMINE, 50, 50);
 				bi.setCost(500, 4, 2, 0);
+				screen.buildBuilding(bi);
+			}
+		});
+		
+		littleStorageBuilding.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				IBuildingInfo bi = new BuildingInfo(Building.LITTLESTORAGE, 50, 50);
+				bi.setCost(200, 3, 1, 0);
+				bi.setRadiusSize(250);
 				screen.buildBuilding(bi);
 			}
 		});
